@@ -5,24 +5,23 @@ import { NoFileOptions } from "./constants";
 import { create, UploadOptions } from "@actions/artifact";
 import { basename, dirname } from "path";
 import { setFailed } from "@actions/core";
-import { GitHub } from "@actions/github";
+import { GitHub, context } from "@actions/github";
 import { uploadReleaseFile } from "./releaser";
 import { zipFile } from './compress'
+const { owner, repo } = context.repo;
+
 async function main(): Promise<void> {
   try {
     const inputs = getInputs();
 
     /* Find files to upload */
-    const filesToUpload = Array<string>();
+    const filesToUpload = Array<Promise<string>>();
     const pathLines = inputs.searchPath.split("\n").map((line) => line.trim());
     for (const pathLine of pathLines) {
       const paths = await findFilesToUpload(pathLine);
       if (paths.length !== 0) {
-        paths.forEach(async (path) => {
-          if (filesToUpload.indexOf(path) < 0) {
-            const zip_file = await zipFile(path);
-            filesToUpload.push(zip_file);
-          }
+        paths.forEach((path) => {
+          filesToUpload.push(zipFile(path));
         });
       } else {
         switch (inputs.ifNoFilesFound) {
@@ -52,11 +51,17 @@ async function main(): Promise<void> {
 
     /* Upload artifacts */
     const artifactClient = create();
+    const gh = new GitHub(inputs.githubToken!, {});
+    const upload_url = (await gh.repos.getLatestRelease({
+      owner,
+      repo
+    })).data.upload_url;
     const options: UploadOptions = {
       continueOnError: false,
       retentionDays: inputs.retentionDays,
     };
-    for (const file of filesToUpload) {
+    for (const filePromise of filesToUpload) {
+      const file = await filePromise
       const rootDirectory = dirname(file);
       const artifactName = basename(file);
       core.info(`⬆️ Uploading artifact ${artifactName}...`);
@@ -66,14 +71,11 @@ async function main(): Promise<void> {
         rootDirectory,
         options
       );
-    }
 
-    /* Upload release files */
-    if (inputs.uploadReleaseFiles) {
-      const gh = new GitHub(inputs.githubToken!, {});
-      for (const path of filesToUpload) {
-        core.info(`⬆️ Uploading release file ${basename(path)}...`);
-        await uploadReleaseFile(gh, inputs.releaseUploadUrl!, path);
+      /* Upload release files */
+      if (inputs.uploadReleaseFiles) {
+        core.info(`⬆️ Uploading release file ${basename(file)}...`);
+        await uploadReleaseFile(gh, upload_url, file);
       }
     }
   } catch (error) {
