@@ -18,9 +18,10 @@ async function main(): Promise<void> {
     for (const pathLine of pathLines) {
       const paths = await findFilesToUpload(pathLine);
       if (paths.length !== 0) {
-        paths.forEach((path) => {
+        paths.forEach(async (path) => {
           if (filesToUpload.indexOf(path) < 0) {
-            filesToUpload.push(path);
+            const zip_file = await zipFile(path);
+            filesToUpload.push(zip_file);
           }
         });
       } else {
@@ -56,13 +57,12 @@ async function main(): Promise<void> {
       retentionDays: inputs.retentionDays,
     };
     for (const file of filesToUpload) {
-      const zip_file = await zipFile(file);
-      const rootDirectory = dirname(zip_file);
-      const artifactName = basename(zip_file);
+      const rootDirectory = dirname(file);
+      const artifactName = basename(file);
       core.info(`⬆️ Uploading artifact ${artifactName}...`);
       await artifactClient.uploadArtifact(
         artifactName,
-        Array(zip_file),
+        Array(file),
         rootDirectory,
         options
       );
