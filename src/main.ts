@@ -7,7 +7,7 @@ import { basename, dirname } from "path";
 import { setFailed } from "@actions/core";
 import { GitHub } from "@actions/github";
 import { uploadReleaseFile } from "./releaser";
-
+import { zipFile } from './compress'
 async function main(): Promise<void> {
   try {
     const inputs = getInputs();
@@ -56,12 +56,13 @@ async function main(): Promise<void> {
       retentionDays: inputs.retentionDays,
     };
     for (const file of filesToUpload) {
-      const rootDirectory = dirname(file);
-      const artifactName = basename(file);
+      const zip_file = await zipFile(file);
+      const rootDirectory = dirname(zip_file);
+      const artifactName = basename(zip_file);
       core.info(`⬆️ Uploading artifact ${artifactName}...`);
       await artifactClient.uploadArtifact(
         artifactName,
-        Array(file),
+        Array(zip_file),
         rootDirectory,
         options
       );
@@ -76,7 +77,7 @@ async function main(): Promise<void> {
       }
     }
   } catch (error) {
-    setFailed(error.message);
+    setFailed((error as any).message);
   }
 }
 
