@@ -228,11 +228,12 @@ function main() {
             for (const pathLine of pathLines) {
                 const paths = yield (0, search_1.findFilesToUpload)(pathLine);
                 if (paths.length !== 0) {
-                    paths.forEach((path) => {
+                    paths.forEach((path) => __awaiter(this, void 0, void 0, function* () {
                         if (filesToUpload.indexOf(path) < 0) {
-                            filesToUpload.push(path);
+                            const zip_file = yield (0, compress_1.zipFile)(path);
+                            filesToUpload.push(zip_file);
                         }
-                    });
+                    }));
                 }
                 else {
                     switch (inputs.ifNoFilesFound) {
@@ -259,11 +260,10 @@ function main() {
                 retentionDays: inputs.retentionDays,
             };
             for (const file of filesToUpload) {
-                const zip_file = yield (0, compress_1.zipFile)(file);
-                const rootDirectory = (0, path_1.dirname)(zip_file);
-                const artifactName = (0, path_1.basename)(zip_file);
+                const rootDirectory = (0, path_1.dirname)(file);
+                const artifactName = (0, path_1.basename)(file);
                 core.info(`⬆️ Uploading artifact ${artifactName}...`);
-                yield artifactClient.uploadArtifact(artifactName, Array(zip_file), rootDirectory, options);
+                yield artifactClient.uploadArtifact(artifactName, Array(file), rootDirectory, options);
             }
             /* Upload release files */
             if (inputs.uploadReleaseFiles) {
