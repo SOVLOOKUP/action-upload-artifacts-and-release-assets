@@ -25,9 +25,6 @@ inputs:
       Minimum 1 day.
       Maximum 90 days unless changed from the repository settings page.
     required: false
-  release-upload-url:
-    description: URL used to upload files to release.
-    required: false
   upload-release-files:
     description: Whether to upload files to release.
     default: 'false'
