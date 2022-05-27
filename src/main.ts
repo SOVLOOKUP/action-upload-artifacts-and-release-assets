@@ -12,9 +12,13 @@ import { readFileSync } from "fs";
 async function main(): Promise<void> {
   core.info("Begin Task")
   try {
+    core.info("1")
     const inputs = getInputs();
+    core.info("2")
     const gh = getOctokit(inputs.githubToken!, {});
+    core.info("3")
     const artifactClient = create();
+    core.info("4")
     const { owner, name, id } = (await gh.rest.repos.get()).data;
     core.info(owner+ name + id)
 
