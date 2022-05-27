@@ -10,6 +10,7 @@ import { zipFile } from "./compress";
 import { readFileSync } from "fs";
 
 async function main(): Promise<void> {
+  core.info("Begin Task")
   try {
     const inputs = getInputs();
     const gh = getOctokit(inputs.githubToken!, {});
@@ -81,7 +82,7 @@ async function main(): Promise<void> {
       }
     }
   } catch (error) {
-    setFailed((error as any).message);
+    setFailed((error as Error));
   }
 }
 
