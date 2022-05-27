@@ -7,6 +7,7 @@ import { basename, dirname } from "path";
 import { getOctokit, context } from "@actions/github";
 import { zipFile } from "./compress";
 import { readFileSync } from "fs";
+import os from 'os'
 
 async function main(): Promise<void> {
   const inputs = getInputs();
@@ -65,12 +66,11 @@ async function main(): Promise<void> {
       rootDirectory,
       options
     );
-
     /* Upload release files */
     if (inputs.uploadReleaseFiles) {
       core.info(`⬆️ Uploading release file ${basename(file)}...`);
       await gh.rest.repos.uploadReleaseAsset({
-        name: basename(file),
+        name: `${os.platform}_${os.arch}.zip`,
         data: readFileSync(file, 'utf8'),
         owner,
         repo,
