@@ -68,10 +68,10 @@ async function main(): Promise<void> {
 
     /* Upload release files */
     if (inputs.uploadReleaseFiles) {
-      core.info(`⬆️ Uploading release file ${basename(file)}...`);
+      core.info(`⬆️ Uploading release file ${basename(file)}...` + context.ref);
       await gh.rest.repos.uploadReleaseAsset({
         name: basename(file),
-        data: readFileSync(file).toString(),
+        data: readFileSync(file, 'utf8'),
         owner,
         repo,
         release_id: Number.parseFloat(context.ref),
