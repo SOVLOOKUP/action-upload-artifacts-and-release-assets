@@ -7,5 +7,4 @@ export interface ActionInputs {
   ifNoFilesFound: NoFileOptions;
   retentionDays: number | undefined;
   uploadReleaseFiles: boolean;
-  releaseUploadUrl: string | undefined;
 }

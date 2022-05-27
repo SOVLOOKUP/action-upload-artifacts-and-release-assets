@@ -54,7 +54,6 @@ export function getInputs(): ActionInputs {
     searchPath: getRequiredStringInput(Inputs.Path),
     ifNoFilesFound: noFileBehavior,
     retentionDays: getNumberInput(Inputs.RetentionDays),
-    releaseUploadUrl: getStringInput(Inputs.ReleaseUploadUrl),
     uploadReleaseFiles: getBooleanInput(Inputs.UploadReleaseFiles) ?? false,
   };
 
@@ -62,10 +61,6 @@ export function getInputs(): ActionInputs {
     if (inputs.githubToken === undefined) {
       throw Error(
         `${Inputs.UploadReleaseFiles} is true but GITHUB_TOKEN is not provided`
-      );
-    } else if (inputs.releaseUploadUrl === undefined) {
-      throw Error(
-        `${Inputs.UploadReleaseFiles} is true but ${Inputs.ReleaseUploadUrl} is not provided`
       );
     }
   }
