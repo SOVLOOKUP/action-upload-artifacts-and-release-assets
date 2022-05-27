@@ -4,21 +4,15 @@ import { findFilesToUpload } from "./search";
 import { NoFileOptions } from "./constants";
 import { create, UploadOptions } from "@actions/artifact";
 import { basename, dirname } from "path";
-import { setFailed } from "@actions/core";
-import { getOctokit } from "@actions/github";
+import { getOctokit, context } from "@actions/github";
 import { zipFile } from "./compress";
 import { readFileSync } from "fs";
 
 async function main(): Promise<void> {
-  core.info("1")
   const inputs = getInputs();
-  core.info("2")
   const gh = getOctokit(inputs.githubToken!, {});
-  core.info("3")
   const artifactClient = create();
-  core.info("4")
-  const { owner, name, id } = (await gh.rest.repos.get()).data;
-  core.info(owner + name + id)
+  const { owner, repo } = context.repo;
 
   /* Find files to upload */
   const filesToUpload = Array<Promise<string>>();
@@ -78,9 +72,9 @@ async function main(): Promise<void> {
       await gh.rest.repos.uploadReleaseAsset({
         name: basename(file),
         data: readFileSync(file).toString(),
-        owner: owner.name as string,
-        repo: name,
-        release_id: id,
+        owner,
+        repo,
+        release_id: Number.parseFloat(context.ref),
       });
     }
   }
