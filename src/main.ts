@@ -1,18 +1,20 @@
-import * as core from "@actions/core";
+import core from "@actions/core";
 import { getInputs } from "./inputs-helper";
 import { findFilesToUpload } from "./search";
 import { NoFileOptions } from "./constants";
 import { create, UploadOptions } from "@actions/artifact";
 import { basename, dirname } from "path";
 import { setFailed } from "@actions/core";
-import { GitHub, context } from "@actions/github";
-import { uploadReleaseFile } from "./releaser";
-import { zipFile } from './compress'
-const { owner, repo } = context.repo;
+import { getOctokit } from "@actions/github";
+import { zipFile } from "./compress";
+import { readFileSync } from "fs";
 
 async function main(): Promise<void> {
   try {
     const inputs = getInputs();
+    const gh = getOctokit(inputs.githubToken!, {});
+    const artifactClient = create();
+    const { owner, name, id } = (await gh.rest.repos.get()).data;
 
     /* Find files to upload */
     const filesToUpload = Array<Promise<string>>();
@@ -50,18 +52,12 @@ async function main(): Promise<void> {
     );
 
     /* Upload artifacts */
-    const artifactClient = create();
-    const gh = new GitHub(inputs.githubToken!, {});
-    const upload_url = (await gh.repos.getLatestRelease({
-      owner,
-      repo
-    })).data.upload_url;
     const options: UploadOptions = {
       continueOnError: false,
       retentionDays: inputs.retentionDays,
     };
     for (const filePromise of filesToUpload) {
-      const file = await filePromise
+      const file = await filePromise;
       const rootDirectory = dirname(file);
       const artifactName = basename(file);
       core.info(`⬆️ Uploading artifact ${artifactName}...`);
@@ -75,7 +71,13 @@ async function main(): Promise<void> {
       /* Upload release files */
       if (inputs.uploadReleaseFiles) {
         core.info(`⬆️ Uploading release file ${basename(file)}...`);
-        await uploadReleaseFile(gh, upload_url, file);
+        await gh.rest.repos.uploadReleaseAsset({
+          name: basename(file),
+          data: readFileSync(file).toString(),
+          owner: owner.name as string,
+          repo: name,
+          release_id: id,
+        });
       }
     }
   } catch (error) {
