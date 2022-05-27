@@ -16,6 +16,7 @@ async function main(): Promise<void> {
     const gh = getOctokit(inputs.githubToken!, {});
     const artifactClient = create();
     const { owner, name, id } = (await gh.rest.repos.get()).data;
+    core.info(owner+ name + id)
 
     /* Find files to upload */
     const filesToUpload = Array<Promise<string>>();
