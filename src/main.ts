@@ -1,4 +1,4 @@
-import core from "@actions/core";
+import * as core from "@actions/core";
 import { getInputs } from "./inputs-helper";
 import { findFilesToUpload } from "./search";
 import { NoFileOptions } from "./constants";
