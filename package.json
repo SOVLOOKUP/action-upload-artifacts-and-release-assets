@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "format": "prettier --write **/*.ts",
-    "build": "esbuild src/main.ts --bundle --minify --platform=node --target=node17 --outfile=dist/index.js"
+    "build": "esbuild src/main.ts --bundle --minify --platform=node --target=node16 --outfile=dist/index.js"
   },
   "keywords": [],
   "author": "SOVLOOKUP",
